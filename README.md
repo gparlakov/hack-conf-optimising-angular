@@ -1,43 +1,6 @@
 # Optimising Angular
 
-## TODO
-
-- do a test run
-- use the angular dev tools to demo check
-- consider sharedReplay(1)
-- add links to the article and minko's presentation
-
-  - https://medium.com/@guptagaruda/angular-2-4-visualizing-change-detection-default-vs-onpush-3d7ed1f69f8e
-  - https://www.mokkapps.de/blog/the-last-guide-for-angular-change-detection-you-will-ever-need/
-  - https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwi5yan2o6PzAhWegv0HHU7zCBoQwqsBegQIBRAB&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dl8mCutUMh78&usg=AOvVaw1kCanWwIdtOSmQx4qQlzCy
-
-- have a script and some slides
-  - add https://bit.ly/ng-perf-hack21 in the above to enable finding it easy
-  - get the people's names and desires or some trivia about themselves (Me - Georgi (joro) about to be a Christmas-time dad while skiing)
-  - talk about the app - what is it and why is it
-    - we use an actual app to get as close to real-world experience as possible
-  - performance on the component level
-    - lots of change detect cycles are the worst contributing factor to low performance
-  - performance on the module level
-  - what is the difference and why address both
-  - what to expect
-    - a few tasks
-    - a review after each task
-      - volunteers to share their code and review would take the most out of this
-
-## Setup
-
-- **node 12 required**
-- clone
-- `npm i` (or `yarn` as you prefer)
-- `npm start` (browser -> localhost:4200)
-
-## What influences the app performance?
-
-- On the Component level (low performance). That's usually caused by unnecessary Change Detection cycles or too many of them.
-- On the Module level (slow loading)
-
-Page - what the user sees as a page (could be one or more components)
+## Performance
 
 ## Low performance (components)
 
