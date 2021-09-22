@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, TrackByFunction } from '@angular/core';
 import { AdminArticle } from '../../model/admin-article';
 
 
@@ -15,4 +15,6 @@ export class AdminArticlesListComponent implements OnInit {
 
   ngOnInit() {
   }
+
+  trackBySlug: TrackByFunction<AdminArticle> = (i, item) => item.slug;
 }

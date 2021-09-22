@@ -6,7 +6,8 @@ let componentInstancesCount = 1;
 @Component({
   selector: 'app-admin-article',
   templateUrl: './admin-article.component.html',
-  styleUrls: ['./admin-article.component.css']
+  styleUrls: ['./admin-article.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminArticleComponent implements DoCheck {
   @Input()
