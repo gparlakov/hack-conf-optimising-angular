@@ -1,5 +1,5 @@
 import {
-  AfterViewChecked, Component,
+  AfterViewChecked, ChangeDetectionStrategy, Component,
   DoCheck,
   Input,
   OnChanges,
@@ -11,7 +11,8 @@ import { Article } from '../../model/article';
 @Component({
   selector: 'app-article',
   templateUrl: './article.component.html',
-  styleUrls: ['./article.component.css']
+  styleUrls: ['./article.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ArticleComponent
   implements DoCheck, OnInit, OnChanges, AfterViewChecked {

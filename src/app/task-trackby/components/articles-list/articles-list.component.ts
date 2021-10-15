@@ -10,6 +10,8 @@ export class AdminArticlesListComponent implements OnInit {
   @Input()
   articles: Article[];
 
+  articleSlug: TrackByFunction<Article> = (_, a) => a.slug;
+
   constructor() {}
 
   ngOnInit() {

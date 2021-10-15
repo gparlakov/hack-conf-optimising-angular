@@ -1,8 +1,6 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule, PreloadAllModules } from '@angular/router';
-import { SettingsComponent } from './settings/settings.component';
 import { AuthGuard } from './core';
-import { ArticleComponent } from './article/article.component';
 import { ArticleResolver } from './article/article-resolver.service';
 
 const routes: Routes = [
@@ -29,8 +27,8 @@ const routes: Routes = [
   },
   {
     path: 'settings',
-    component: SettingsComponent,
     canActivate: [AuthGuard],
+    loadChildren: () => import('./settings/settings.module').then(s => s.SettingsModule)
   },
   {
     path: 'profile',
@@ -42,15 +40,7 @@ const routes: Routes = [
   },
   {
     path: 'article',
-    children: [
-      {
-        path: ':slug',
-        component: ArticleComponent,
-        resolve: {
-          article: ArticleResolver,
-        },
-      },
-    ],
+    loadChildren: () => import('./article/article.module').then(a => a.ArticleModule)
   },
 ];
 

@@ -16,6 +16,6 @@ export class DebounceSearchComponent implements OnInit {
   constructor(private articlesService: DebounceArticleService) {}
 
   ngOnInit() {
-    this.articlesService.onSearchInit(this.searchControl.valueChanges);
+    this.articlesService.onSearchInit(this.searchControl.valueChanges.pipe(debounceTime(400)));
   }
 }

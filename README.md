@@ -1,6 +1,16 @@
 # Optimising Angular
 
-## Performance
+## Setup
+
+- **node 12 required**
+- clone
+- `npm i` (or `yarn` as you prefer)
+- `npm start` (browser -> localhost:4200)
+
+## What influences the app performance?
+
+- On the Component level (low performance). That's usually caused by unnecessary Change Detection cycles or too many of them.
+- On the Module level (slow loading)
 
 ## Low performance (components)
 
@@ -14,10 +24,10 @@
    - and there is a slow operation to demonstrate a sluggish user experience
    - this might be avoided by using the `trackBy` capability of the `ngFor` directive
 
-2. Add an `articleSlug` property in the `admin-article-list.component`
-3. Let it be of type `TrackByFunction<AdminArticle>`
-4. Assign a function to the property that accepts index and an item if type `AdminArticle` and return the slug of the article.
-5. Now notice the template of `admin-article-list.component`.
+2. Add an `articleSlug` property in the `task-trackby/components/article-list.component`([link](src/app/task-trackby/components/articles-list/articles-list.component.ts))
+3. Let it be of type `TrackByFunction<Article>`
+4. Assign a function to the property that accepts index and an item if type `Article` and return the slug of the article.
+5. Now notice the template of `article-list.component`.
 6. Add a `;trackBy:articleSlug` to the end of the `*ngFor` declaration. That will instruct Angular to take the returned value and check that for equality with the previous one instead of just comparing object references.
 7. Notice how the controls no longer cause the redrawing of the whole list and rather make the existing components change.
 8. Review (for help see [component](files/src/app/task-trackby/article-list/articles-list.component.ts.help) and [template](files/src/app/task-trackby/article-list/articles-list.component.html.help))
@@ -28,8 +38,37 @@
 
    - notice the number in front of the article preview
    - it counts how many times each component has done its change detection ![missing image for onpush change detections](/files/onpush-change-detections.png)
+   - interact with the controls and try typing in the input and notice how every time a new change detection cycle happens
 
 2. What is happening?
+
+   - the initial number is caused by router events (see app.component ngOnInit and uncomment router events logging)
+   - the first of the component gets twice as many changes because it's getting used for the debugChangeDetection second cycle which gives us the infamous `expressionChangedAfterItHasBeenCheckedError` only in dev mode
+     - How to check if that's not the case in a production build? Run `ng serve --prod` for prod build serve, where we do not get the debugChangeDetection second cycle.
+   - each event that triggers change detection triggers change detection for each of the article components, including:
+     - typing in the input (each letter counts as an event)
+     - interacting with the `[+]`, `[-]` buttons
+
+3. How to fix?
+
+   - using change detections strategy OnPush
+   - each article component will only run change detection if its input changes
+   - any async pipe input counts too
+
+4. Adjust the change detection strategy of the `task-onpush/components/article.component`([link](src/app/task-onpush/components/article/article.component.ts)) to on-push.
+5. Try typing in the input again and notice if the change detection is triggered in the article
+6. Review (for help see [task-onpush/article.component.ts.help](files/src/app/task-onpush/article/article.component.ts.help))
+
+1. Notice the `/on-push` route accessible via the Task OnPush on the navigation.
+
+   - notice the number in front of the article preview
+   - it counts how many times each component has done its change detection ![missing image for onpush change detections](/files/onpush-change-detections.png)
+
+   - It allows searching of articles.
+   - It makes a request for every keystroke of the search input. That might be a slow and costly operation.
+     - _for demo purposes we've disabled the actual search operation and cached 100 articles locally_
+   - The number of requests are visualized next to the input field:
+     ![missing debounce network requests](/files/debounce-network-requests.png)
 
    - the initial number is caused by router events (see app.component ngOnInit and uncomment router events logging)
    - the first of the component gets twice as many changes because it's getting used for the debugChangeDetection second cycle which gives us the infamous `expressionChangedAfterItHasBeenCheckedError` only in dev mode
@@ -79,34 +118,17 @@
 
 ### Bundle size
 
-1. Run `npm i -g webpack-bundle-analyzer` see [help](webpack-bundle-analyzer)
-2. Run `ng build --prod --stats-json`
+1. [SETUP step] Run `npm i -g webpack-bundle-analyzer` see [help](webpack-bundle-analyzer)
+2. Run `ng build --prod --stats-json --named-chunks`
 3. Run `webpack-bundle-analyzer dist/stats.json` (keep tab open for comparison)
+
+   - capabilities: searching, zooming in, and out, etc.
+   - [sizes explanation](https://www.npmjs.com/package/webpack-bundle-analyzer#size-definitions)
+
 4. Notice
 
    - article and settings modules are not lazy as opposed to profile, editor, and the task modules
    - all moment locales - even though we need only a few of them - us/ru ![bundles image missing](/files/bundles.png)
-
-5. Explore what Angular does automatically with the tree shaker
-   - Run `ng build ts --prod --common-chunk false --stats-json && webpack-bundle-analyzer dist/ts/stats.json` (notice we are building the [ts project](./projects/ts/src/app/app.component.ts))
-   - Checkout the `main`, `secondary` and `third` components and see that **only** the used components end up in the bundles, even though using the shared module and its shared components
-6. Demo what Ivy does for us in terms of performance. **Angular 8** requires **node 10** so either use Docker or install Node 10 locally
-   - for local build
-     - `ng update @angular/cli @angular/core`
-     - `ng build ts --prod --common-chunk false --stats-json` (notice we build `ts` app))
-     - `webpack-bundle-analyzer dist/ts/stats-es2015.json`
-     - navigate to `localhost:8888`
-   - for docker demo
-     - `docker run -p 8888:8888 gparlakov/demo-ivy`
-     - navigate to `localhost:8888`
-   - using nvm (node version manger)
-     - install nvm ([linux/MacOs](https://github.com/nvm-sh/nvm)) ([windows](https://github.com/coreybutler/nvm-windows))
-     - run `nvm install 10.13.0`
-     - run `nvm use 10.13.0`
-     - run the scripts
-       - `ng update @angular/cli @angular/core`
-       - `ng build ts --prod --common-chunk false --stats-json` (notice we build `ts` app))
-       - `webpack-bundle-analyzer dist/ts/stats-es2015.json`
 
 ### Lazy loading
 
@@ -115,15 +137,18 @@
    - make the route use `loadChildren: "./article/article.module#ArticleModule"`
 2. Make Settings module lazy - same steps as above
 3. Note the bundle sizes change (run steps 2. and 3. from the Bundle Size section above)
-   `ng build --prod --stats-json && webpack-bundle-analyzer dist/stats.json`
+   `ng build --stats-json --named-chunks && webpack-bundle-analyzer dist/stats.json`
 4. Review (see [app-routing.module.ts](files/src/app/app-routing.module.ts.help) and [app.module.ts](files/src/app/app.module.ts.help))
+
+5. Explore what Angular does automatically for us
+   - Run `ng build --prod --common-chunk false --stats-json --named-chunks && webpack-bundle-analyzer dist/stats.json`
 
 ### Removal of unused modules manually
 
-1. Check out the moment locales (keep the browser tab open for comparison)
+1. Note the moment locales (keep the browser tab open for comparison)
 2. Add `"postinstall": "node ./tools/remove-unused-locales.js"` to `scripts` section of package.json
 3. Run `npm i` to invoke the post-install hook script
-4. `ng build --prod --stats-json` and `webpack-bundle-analyzer ./dist/stats.json` and `` and see the bundle size differ
+4. `ng build --prod --stats-json --named-chunks` and `webpack-bundle-analyzer ./dist/stats.json` and `` and see the bundle size differ
 5. Review
 
 ### Manual JS lazy module load
@@ -157,5 +182,44 @@
        }
      ```
 
-4. Now run the `ng build --prod --stats-json && webpack-bundle-analyzer dist/stats.json` and notice now Pusher has its own bundle
+4. Now run the `ng build --prod --stats-json --named-chunks && webpack-bundle-analyzer dist/stats.json` and notice now Pusher has its own bundle
 5. Review (see [help](files/src/app/core/services/pusher.service.ts.help))
+
+[Bonus] How to actually use pusher
+
+- sign in with the Conduit app - your user email will be the "channel"
+- visit [https://dashboard.pusher.com/accounts/sign_up](https://dashboard.pusher.com/accounts/sign_up) to sign up
+- get a token:
+  - create an app in Channels sandbox plan from the [dashboard](https://dashboard.pusher.com/) `Get started` or `Manage -> Add app`
+  - get a token from `App keys` in the app
+  - add the `key` to `app.module.ts` where `/** Pusher key here*/` is
+- push some messages from the dashboard at pusher.com and see them appear in the app by:
+  - find the `your app -> debug -> Event creator`
+  - the **channel** is your user email
+  - the event should be **'notify'** (as that's what's been setup - change or add more in the `PusherService`)
+  - notice the events arrive in the lower right corner of the app
+
+## Tree shaker
+
+Explore what Angular does automatically with the tree shaker
+
+- Note the `projects/ts` folder.
+- Note the `main`, `secondary` and `third` components and see that **only** the used components end up in the bundles, even though using the shared module and its shared components
+- Run `ng build ts --prod --common-chunk false --stats-json --named-chunks && webpack-bundle-analyzer dist/ts/stats.json` (notice we are building the [ts project](./projects/ts/src/app/app.component.ts))
+
+## Links
+
+- Angular docs
+
+  - [https://angular.io/guide/built-in-directives#tracking-items-with-ngfor-trackby](https://angular.io/guide/built-in-directives#tracking-items-with-ngfor-trackby)
+  - [https://angular.io/api/core/ChangeDetectionStrategy](https://angular.io/api/core/ChangeDetectionStrategy)
+
+- Angular dev tools
+
+  - [https://medium.com/@guptagaruda/angular-2-4-visualizing-change-detection-default-vs-onpush-3d7ed1f69f8e](https://medium.com/@guptagaruda/angular-2-4-visualizing-change-detection-default-vs-onpush-3d7ed1f69f8e)
+  - [https://www.mokkapps.de/blog/the-last-guide-for-angular-change-detection-you-will-ever-need/](https://www.mokkapps.de/blog/the-last-guide-for-angular-change-detection-you-will-ever-need/)
+  - [https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwi5yan2o6PzAhWegv0HHU7zCBoQwqsBegQIBRAB&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dl8mCutUMh78&usg=AOvVaw1kCanWwIdtOSmQx4qQlzCy](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwi5yan2o6PzAhWegv0HHU7zCBoQwqsBegQIBRAB&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dl8mCutUMh78&usg=AOvVaw1kCanWwIdtOSmQx4qQlzCy)
+
+- webpack bundle analyzer
+
+  - [https://www.npmjs.com/package/webpack-bundle-analyzer](https://www.npmjs.com/package/webpack-bundle-analyzer)

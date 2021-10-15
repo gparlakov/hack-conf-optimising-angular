@@ -7,8 +7,6 @@ import { CoreModule } from './core/core.module';
 import { PusherModule } from './core/services/pusher.module';
 import { HomeModule } from './home/home.module';
 import { FooterComponent, HeaderComponent, SharedModule } from './shared';
-import { SettingsModule } from './settings/settings.module';
-import { ArticleModule } from './article/article.module';
 import { MomentModule } from 'ngx-moment';
 
 @NgModule({
@@ -27,12 +25,10 @@ import { MomentModule } from 'ngx-moment';
       }
     }),
     // pusher.com account required
-    PusherModule.forRoot(/** add the key see agenda doc */ null, {
+    PusherModule.forRoot(/** Pusher key here*/ null, {
       cluster: 'eu',
       forceTLS: true
     }),
-    SettingsModule,
-    ArticleModule
   ],
   bootstrap: [AppComponent]
 })
